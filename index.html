@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>时间线 Timeline（1~8人）</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      background: #1a2238;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .tip {
+      text-align: center;
+      color: #ccc;
+      margin-bottom: 20px;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 玩家区域 */
+    .player-select {
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    .player-btn {
+      padding: 6px 10px;
+      margin: 2px;
+      background: #2a3457;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .player-btn.active {
+      background: #3355ff;
+    }
+
+    .current-player {
+      text-align: center;
+      font-size: 18px;
+      color: #ffcc00;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .hands-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .player-hand {
+      background: #222b4a;
+      padding: 10px;
+      border-radius: 10px;
+      min-height: 200px;
+    }
+
+    .player-hand h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    .player-hand.current {
+      outline: 2px solid #ffcc00;
+      background: #2a3457;
+    }
+
+    .hand-cards {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .timeline-area {
+      display: flex;
+      gap: 8px;
+      padding: 15px;
+      background: #2a3457;
+      border-radius: 12px;
+      min-height: 180px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      width: 120px;
+      min-width: 120px;
+      height: 180px;
+      background: #fff;
+      color: #222;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 2px 6px #0004;
+      transition: transform 0.2s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+    }
+
+    .card-img {
+      width: 104px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 4px;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      background: #eee;
+    }
+
+    .event-text {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card.back {
+      background: #3355ff url('./images/back.png') center/cover no-repeat;
+    }
+
+    .card.selected {
+      outline: 3px solid #ffcc00;
+    }
+
+    .card .year {
+      position: absolute;
+      bottom: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #666;
+    }
+
+    .card .category {
+      font-size: 10px;
+      color: #888;
+      font-weight: bold;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      text-align: center;
+    }
+
+
+
+    .btn {
+      padding: 10px 20px;
+      background: #3355ff;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px auto;
+      display: block;
+    }
+
+    .btn2 {
+      padding: 8px 14px;
+      background: #2a3457;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 4px;
+    }
+
+    .btn:disabled {
+      background: #666;
+      cursor: not-allowed;
+    }
+
+    .insert-spot {
+      width: 15px;
+      min-width: 15px;
+      height: 180px;
+      background: #ffcc0033;
+      border: 2px dashed #ffcc00;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* 编辑器样式 */
+    .editor-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0008;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+
+    .editor-box {
+      background: #2a3457;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .editor-close {
+      cursor: pointer;
+      color: #ff6666;
+      font-size: 20px;
+    }
+
+    .card-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .card-item {
+      background: #fff;
+      color: #222;
+      padding: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .form-line {
+      margin: 8px 0;
+      display: flex;
+      gap: 8px;
+    }
+
+    input {
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      width: 100%;
+    }
+
+    .del-btn {
+      background: #ff4444;
+      color: #fff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .import-export {
+      display: flex;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .import-export input {
+      display: none;
+    }
+
+    .playing .setup-element {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="title setup-element">时间线 Timeline（1~8人）</div>
+    <div class="tip" id="tip">选择人数后点击「开始游戏」</div>
+
+    <button class="btn2 setup-element" id="openEditorBtn">📝 编辑卡牌</button>
+    <button class="btn2 setup-element" id="openPlayerEditorBtn">👤 编辑玩家</button>
+
+    <!-- 人数选择 -->
+    <div class="player-select setup-element" id="playerSelect">
+      游玩人数：
+      <button class="player-btn" data-p="1">1人</button>
+      <button class="player-btn active" data-p="2">2人</button>
+      <button class="player-btn" data-p="3">3人</button>
+      <button class="player-btn" data-p="4">4人</button>
+      <button class="player-btn" data-p="5">5人</button>
+      <button class="player-btn" data-p="6">6人</button>
+      <button class="player-btn" data-p="7">7人</button>
+      <button class="player-btn" data-p="8">8人</button>
+    </div>
+
+    <!-- 起始手牌数选择 -->
+    <div class="player-select setup-element" id="handSelect" style="margin-top: 10px;">
+      起始手牌：
+      <button class="player-btn hand-btn" data-h="2">2张</button>
+      <button class="player-btn hand-btn active" data-h="3">3张</button>
+      <button class="player-btn hand-btn" data-h="4">4张</button>
+      <button class="player-btn hand-btn" data-h="5">5张</button>
+      <button class="player-btn hand-btn" data-h="6">6张</button>
+    </div>
+
+    <!-- 章节选择 -->
+    <div class="player-select setup-element" id="chapterSelect" style="margin-top: 10px;">
+      游戏章节：
+      <button class="player-btn chapter-btn active" data-c="Chapter 1">Ch 1</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 2">Ch 2</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 3">Ch 3</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 4">Ch 4</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 5">Ch 5</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 6">Ch 6</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 7">Ch 7</button>
+      <button class="player-btn chapter-btn" data-c="Chapter 8">Ch 8</button>
+    </div>
+
+
+    <!-- 开启时间范围模式 -->
+    <div class="player-select setup-element" id="rangeModeSelect" style="margin-top: 10px;">
+      <label style="cursor: pointer; display:flex; align-items:center; gap:5px;"><input type="checkbox"
+          id="rangeModeCheckbox"> <span style="font-weight:bold; color:#ffcc00;">开启时间范围模式 (双排布局)</span></label>
+    </div>
+    <!-- 难度选择 -->
+    <div class="player-select setup-element" id="difficultySelect" style="margin-top: 10px;">
+      游戏难度：
+      <button class="player-btn diff-btn active" data-diff="easy">简单 (Easy)</button>
+      <button class="player-btn diff-btn" data-diff="normal">普通 (Normal)</button>
+      <button class="player-btn diff-btn" data-diff="hard">困难 (Hard)</button>
+    </div>
+
+    <div class="current-player" id="currentPlayer"></div>
+
+    <!-- 时间线 -->
+    <div class="timeline-wrapper" id="timelineWrapper">
+      <div class="timeline-area" id="timeline"></div>
+      <div class="timeline-range-area" id="timelineRange" style="display: none;"></div>
+    </div>
+
+    <!-- 所有玩家手牌 -->
+    <div class="hands-container" id="handsContainer"></div>
+
+    <button class="btn setup-element" id="startBtn">开始游戏</button>
+  </div>
+
+  <!-- 编辑器 -->
+  <div class="editor-modal" id="editorModal">
+    <div class="editor-box">
+      <div class="editor-header">
+        <h3>卡牌编辑器</h3>
+        <span class="editor-close" id="closeEditor">✕</span>
+      </div>
+      <div class="form-line">
+        <label style="display:flex; align-items:center; gap:4px; font-size:14px;"><input type="checkbox"
+            id="editIsRange"> 范围卡</label>
+        <input id="editEvent" placeholder="事件名称" style="flex: 1;">
+        <input id="editYear" placeholder="年份/起始" style="width: 70px;">
+        <input id="editEndYear" placeholder="结束年份" style="width: 70px; display: none;">
+        <input id="editDisplayYear" placeholder="显示文字(可选)" style="width: 90px;">
+      </div>
+      <div class="form-line">
+        <select id="editChapter" style="width: 90px;">
+          <option value="Chapter 1">Ch 1</option>
+          <option value="Chapter 2">Ch 2</option>
+          <option value="Chapter 3">Ch 3</option>
+          <option value="Chapter 4">Ch 4</option>
+          <option value="Chapter 5">Ch 5</option>
+          <option value="Chapter 6">Ch 6</option>
+          <option value="Chapter 7">Ch 7</option>
+          <option value="Chapter 8">Ch 8</option>
+        </select>
+        <select id="editCategory" style="width: 130px;">
+          <option value="">无分类</option>
+          <option value="Greco-Roman">Greco-Roman</option>
+          <option value="Christianity">Christianity</option>
+          <option value="German Warriors">German Warriors</option>
+        </select>
+        <select id="editDifficulty" style="width: 80px;">
+          <option value="easy">Easy</option>
+          <option value="normal">Normal</option>
+          <option value="hard">Hard</option>
+        </select>
+        <input id="editImg" placeholder="图片URL(可选)" style="flex: 1;">
+        <button class="btn" id="addCardBtn" style="margin: 0;">保存</button>
+      </div>
+      <div class="import-export">
+        <button class="btn2" id="exportBtn">💾 导出卡牌</button>
+        <label class="btn2" for="importFile">📂 导入卡牌</label>
+        <input type="file" id="importFile" accept=".json">
+        <button class="btn2" id="resetBtn">🔄 重置默认卡牌</button>
+      </div>
+      <small>点击卡牌修改，点删除移除</small>
+      <div class="card-list" id="cardList"></div>
+    </div>
+  </div>
+
+  <!-- 玩家编辑器 -->
+  <div class="editor-modal" id="playerEditorModal">
+    <div class="editor-box">
+      <div class="editor-header">
+        <h3>编辑玩家姓名</h3>
+        <span class="editor-close" id="closePlayerEditor">✕</span>
+      </div>
+      <div class="card-list" id="playerList"></div>
+      <button class="btn" id="savePlayersBtn">保存并关闭</button>
+    </div>
+  </div>
+
+  <script>
+    // ==============================
+    // 卡牌数据
+    // ==============================
+    const defaultCards = [
+      { event: "指南针发明", year: 1086 }, { event: "活字印刷术", year: 1041 },
+      { event: "哥伦布发现新大陆", year: 1492 }, { event: "牛顿发表原理", year: 1687 },
+      { event: "美国独立宣言", year: 1776 }, { event: "蒸汽机改良", year: 1775 },
+      { event: "拿破仑称帝", year: 1804 }, { event: "鸦片战争", year: 1840 },
+      { event: "物种起源", year: 1859 }, { event: "林肯遇刺", year: 1865 },
+      { event: "普法战争", year: 1870 }, { event: "电话发明", year: 1876 },
+      { event: "电灯商业化", year: 1879 }, { event: "甲午战争", year: 1894 },
+      { event: "X光发现", year: 1895 }, { event: "诺贝尔奖首次", year: 1901 },
+      { event: "飞机首飞", year: 1903 }, { event: "狭义相对论", year: 1905 },
+      { event: "辛亥革命", year: 1911 }, { event: "一战爆发", year: 1914 },
+      { event: "十月革命", year: 1917 }, { event: "一战结束", year: 1918 },
+      { event: "五四运动", year: 1919 }, { event: "电视发明", year: 1925 },
+      { event: "青霉素", year: 1928 }, { event: "二战爆发", year: 1939 },
+      { event: "珍珠港", year: 1941 }, { event: "诺曼底登陆", year: 1944 },
+      { event: "原子弹", year: 1945 }, { event: "二战结束", year: 1945 },
+      { event: "联合国", year: 1945 }, { event: "计算机诞生", year: 1946 },
+      { event: "新中国成立", year: 1949 }, { event: "DNA双螺旋", year: 1953 },
+      { event: "苏联卫星", year: 1957 }, { event: "人类太空", year: 1961 },
+      { event: "互联网前身", year: 1969 }, { event: "阿波罗登月", year: 1969 },
+      { event: "手机诞生", year: 1973 }, { event: "Apple I", year: 1976 },
+      { event: "微软成立", year: 1975 }, { event: "柏林墙倒塌", year: 1989 },
+      { event: "万维网", year: 1989 }, { event: "苏联解体", year: 1991 },
+      { event: "谷歌成立", year: 1998 }, { event: "iPhone发布", year: 2007 },
+      { event: "新冠疫情", year: 2019 }
+    ];
+
+    function formatImgUrl(url) {
+      if (!url) return url;
+      const basePath = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+      if (url.startsWith(basePath + '/')) {
+        return './' + url.substring(basePath.length + 1);
+      }
+      if (url.startsWith('file://')) {
+        const idx = url.indexOf('/images/');
+        if (idx !== -1) return '.' + url.substring(idx);
+      }
+      return url;
+    }
+
+    function loadCards() {
+      const s = localStorage.getItem('timeline_cards');
+      const cards = s ? JSON.parse(s) : [...defaultCards];
+      return cards.map(c => {
+        if (c.img) c.img = formatImgUrl(c.img);
+        return c;
+      });
+    }
+    function saveCards(a) { localStorage.setItem('timeline_cards', JSON.stringify(a)); }
+    let allCards = loadCards();
+
+    function loadPlayerNames() {
+      const s = localStorage.getItem('timeline_player_names');
+      return s ? JSON.parse(s) : Array.from({ length: 8 }, (_, i) => `玩家 ${i + 1}`);
+    }
+    function savePlayerNames(a) { localStorage.setItem('timeline_player_names', JSON.stringify(a)); }
+    let playerNames = loadPlayerNames();
+
+    // ==============================
+    // 游戏全局（多人版）
+    // ==============================
+    let playerCount = 2;
+    let difficultyLevel = 'easy';
+    let handCardCount = 3;
+    let enableRangeMode = false;
+    let selectedChapters = new Set(['Chapter 1']);
+    let players = [];
+    let currentPlayerIndex = 0;
+    let deck = [], timeline = [], timelineRange = [];
+    let selectedCard = null;
+    let editingIndex = -1;
+
+    // DOM
+    const tip = document.getElementById('tip');
+    const startBtn = document.getElementById('startBtn');
+    const timelineEl = document.getElementById('timeline');
+    const timelineRangeEl = document.getElementById('timelineRange');
+    const timelineWrapper = document.getElementById('timelineWrapper');
+    const handsContainer = document.getElementById('handsContainer');
+    const rangeModeCheckbox = document.getElementById('rangeModeCheckbox');
+    const currentPlayerEl = document.getElementById('currentPlayer');
+    const playerBtns = document.querySelectorAll('#playerSelect .player-btn');
+    const diffBtns = document.querySelectorAll('.diff-btn');
+    const handBtns = document.querySelectorAll('.hand-btn');
+    const chapterBtns = document.querySelectorAll('.chapter-btn');
+
+    // 编辑器
+    const editorModal = document.getElementById('editorModal');
+    const openEditorBtn = document.getElementById('openEditorBtn');
+    const closeEditor = document.getElementById('closeEditor');
+    const cardList = document.getElementById('cardList');
+    const editIsRange = document.getElementById('editIsRange');
+    const editEndYear = document.getElementById('editEndYear');
+    const editEvent = document.getElementById('editEvent');
+    const editYear = document.getElementById('editYear');
+    const editDisplayYear = document.getElementById('editDisplayYear');
+    const editChapter = document.getElementById('editChapter');
+    const editCategory = document.getElementById('editCategory');
+    const editDifficulty = document.getElementById('editDifficulty');
+    const editImg = document.getElementById('editImg');
+    const addCardBtn = document.getElementById('addCardBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importFile = document.getElementById('importFile');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // 玩家编辑器 DOM
+    const playerEditorModal = document.getElementById('playerEditorModal');
+    const openPlayerEditorBtn = document.getElementById('openPlayerEditorBtn');
+    const closePlayerEditor = document.getElementById('closePlayerEditor');
+    const playerList = document.getElementById('playerList');
+    const savePlayersBtn = document.getElementById('savePlayersBtn');
+
+    // 人数选择
+    playerBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        playerBtns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        playerCount = parseInt(b.dataset.p);
+      });
+    });
+
+    diffBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        diffBtns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        difficultyLevel = b.dataset.diff;
+      });
+    });
+
+    handBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        handBtns.forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        handCardCount = parseInt(b.dataset.h);
+      });
+    });
+
+    chapterBtns.forEach(b => {
+      b.addEventListener('click', () => {
+        const c = b.dataset.c;
+        if (selectedChapters.has(c)) {
+          if (selectedChapters.size > 1) {
+            selectedChapters.delete(c);
+            b.classList.remove('active');
+          }
+        } else {
+          selectedChapters.add(c);
+          b.classList.add('active');
+        }
+      });
+    });
+
+    rangeModeCheckbox.addEventListener('change', (e) => {
+      enableRangeMode = e.target.checked;
+    });
+
+    editIsRange.addEventListener('change', (e) => {
+      editEndYear.style.display = e.target.checked ? 'inline-block' : 'none';
+      if (!e.target.checked) editEndYear.value = '';
+    });
+    startBtn.onclick = startGame;
+    openEditorBtn.onclick = openEditor;
+    closeEditor.onclick = () => editorModal.style.display = 'none';
+    addCardBtn.onclick = saveEditCard;
+    exportBtn.onclick = exportCards;
+    importFile.onchange = importCards;
+    resetBtn.onclick = resetDefault;
+
+    openPlayerEditorBtn.onclick = () => {
+      playerEditorModal.style.display = 'flex';
+      playerList.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const d = document.createElement('div');
+        d.className = 'form-line';
+        d.innerHTML = `<span style="white-space:nowrap;line-height:34px;">玩家 ${i + 1}：</span><input type="text" id="pname_${i}" value="${playerNames[i]}">`;
+        playerList.appendChild(d);
+      }
+    };
+    closePlayerEditor.onclick = () => playerEditorModal.style.display = 'none';
+    savePlayersBtn.onclick = () => {
+      for (let i = 0; i < 8; i++) {
+        const val = document.getElementById(`pname_${i}`).value.trim();
+        playerNames[i] = val || `玩家 ${i + 1}`;
+      }
+      savePlayerNames(playerNames);
+      playerEditorModal.style.display = 'none';
+      if (players.length > 0) renderAll();
+    };
+
+    // ==============================
+    // 洗牌
+    // ==============================
+    function shuffle(arr) {
+      let a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    // ==============================
+    // 开始游戏
+    // ==============================
+    function startGame() {
+      startBtn.disabled = true;
+      allCards = loadCards();
+
+      let filteredCards = allCards.filter(c => {
+        if (!enableRangeMode && c.isRange) return false;
+
+        const chapter = c.chapter || 'Chapter 1';
+        if (!selectedChapters.has(chapter)) return false;
+
+        const d = c.difficulty || 'easy';
+        if (difficultyLevel === 'easy') return d === 'easy';
+        if (difficultyLevel === 'normal') return d === 'easy' || d === 'normal';
+        return true;
+      });
+
+      if (filteredCards.length < playerCount * handCardCount + 1) {
+        alert('卡牌数量不足以支持当前设置！请添加更多卡牌或减少人数/手牌数。');
+        startBtn.disabled = false;
+        return;
+      }
+
+      deck = shuffle(filteredCards);
+
+      timeline = [];
+      timelineRange = [];
+      const firstStandardIdx = deck.findIndex(c => !c.isRange);
+      if (firstStandardIdx >= 0) {
+        timeline.push(deck.splice(firstStandardIdx, 1)[0]);
+      } else {
+        let c = deck.pop();
+        if (c.isRange) timelineRange.push(c);
+        else timeline.push(c);
+      }
+
+      players = [];
+      for (let i = 0; i < playerCount; i++) {
+        players.push({ hand: deck.splice(0, handCardCount) });
+      }
+      currentPlayerIndex = 0;
+      selectedCard = null;
+      document.body.classList.add('playing');
+      renderAll();
+      showTip("选择手牌 → 点击黄色位置插入");
+    }
+
+    // ==============================
+    // 渲染
+    // ==============================
+    function renderAll() {
+      renderTimeline();
+      renderHands();
+      renderCurrentPlayer();
+    }
+
+    function getRangeCenterX(startYear, endYear) {
+      if (timeline.length === 0) return 300;
+      let matchedCenters = [];
+      const stdCards = timelineEl.querySelectorAll('.card');
+      stdCards.forEach((el, idx) => {
+        const y = timeline[idx].year;
+        if (y >= startYear && y <= endYear) {
+          matchedCenters.push(el.offsetLeft + el.offsetWidth / 2);
+        }
+      });
+      if (matchedCenters.length > 0) {
+        return (matchedCenters[0] + matchedCenters[matchedCenters.length - 1]) / 2;
+      } else {
+        let leftIdx = -1;
+        let rightIdx = -1;
+        for (let i = 0; i < timeline.length; i++) {
+          if (timeline[i].year < startYear) leftIdx = i;
+          if (timeline[i].year > endYear && rightIdx === -1) rightIdx = i;
+        }
+        if (leftIdx !== -1 && rightIdx !== -1) {
+          const L = stdCards[leftIdx]; const R = stdCards[rightIdx];
+          return ((L.offsetLeft + L.offsetWidth) + R.offsetLeft) / 2;
+        } else if (leftIdx !== -1) {
+          const L = stdCards[leftIdx];
+          return L.offsetLeft + L.offsetWidth + 80;
+        } else if (rightIdx !== -1) {
+          const R = stdCards[rightIdx];
+          return R.offsetLeft - 80;
+        }
+        return 300;
+      }
+    }
+
+    function renderTimeline() {
+      timelineEl.innerHTML = '';
+
+      const isSelectingStandard = selectedCard && !selectedCard.isRange;
+      const isSelectingRange = selectedCard && selectedCard.isRange;
+
+      // UPPER ROW
+      const spotL = document.createElement('div');
+      spotL.className = 'insert-spot' + (isSelectingStandard ? ' active-spot' : '');
+      if (isSelectingStandard) { spotL.style.background = '#ffcc0066'; spotL.style.borderColor = '#ffcc00'; }
+      spotL.onclick = () => insertAt(0, false);
+      timelineEl.appendChild(spotL);
+
+      timeline.forEach((c, i) => {
+        const el = makeCardEl(c, 'full');
+        timelineEl.appendChild(el);
+        const s = document.createElement('div');
+        s.className = 'insert-spot' + (isSelectingStandard ? ' active-spot' : '');
+        if (isSelectingStandard) { s.style.background = '#ffcc0066'; s.style.borderColor = '#ffcc00'; }
+        s.onclick = () => insertAt(i + 1, false);
+        timelineEl.appendChild(s);
+      });
+
+      // LOWER ROW
+      if (!enableRangeMode) {
+        timelineRangeEl.style.display = 'none';
+        timelineWrapper.style.minHeight = '250px';
+        return;
+      }
+      timelineRangeEl.style.display = 'block';
+      timelineWrapper.style.minHeight = '460px';
+      timelineRangeEl.innerHTML = '';
+
+      const targetCenters = timelineRange.map(c => getRangeCenterX(c.year, c.endYear));
+
+      const SPOT_WIDTH = 19;
+      const CARD_WIDTH = 120;
+      let positions = [];
+
+      if (timelineRange.length === 0) {
+        positions.push(timeline.length > 0 ? getRangeCenterX(-99999, 99999) : 300);
+      } else {
+        for (let i = 0; i < timelineRange.length; i++) {
+          positions.push(targetCenters[i] - 70);
+          positions.push(targetCenters[i]);
+        }
+        positions.push(targetCenters[targetCenters.length - 1] + 70);
+      }
+
+      for (let i = 1; i < positions.length; i++) {
+        const minReq = positions[i - 1] + (i % 2 === 0 ? (SPOT_WIDTH + CARD_WIDTH) / 2 : (CARD_WIDTH + SPOT_WIDTH) / 2) + 10;
+        if (positions[i] < minReq) positions[i] = minReq;
+      }
+
+      let posIdx = 0;
+      const makeSpot = (idx) => {
+        const w = document.createElement('div');
+        w.style.position = 'absolute';
+        w.style.left = (positions[posIdx] - SPOT_WIDTH / 2) + 'px';
+
+        const s = document.createElement('div');
+        s.className = 'insert-spot' + (isSelectingRange ? ' active-spot' : '');
+        if (isSelectingRange) Object.assign(s.style, { background: '#ffcc0066', borderColor: '#ffcc00', borderStyle: 'dashed', borderWidth: '2px' });
+        else Object.assign(s.style, { borderColor: 'rgba(255,255,255,0.2)', borderStyle: 'dotted' });
+
+        s.onclick = () => insertAt(idx, true);
+        w.appendChild(s);
+        timelineRangeEl.appendChild(w);
+        posIdx++;
+      };
+
+      makeSpot(0);
+      timelineRange.forEach((c, idx) => {
+        const w = document.createElement('div');
+        w.style.position = 'absolute';
+        w.style.left = (positions[posIdx] - CARD_WIDTH / 2) + 'px';
+
+        const el = makeCardEl(c, 'full');
+        w.appendChild(el);
+        timelineRangeEl.appendChild(w);
+        posIdx++;
+        makeSpot(idx + 1);
+      });
+
+      let maxWidth = 0;
+      const els = timelineRangeEl.children;
+      for (let i = 0; i < els.length; i++) {
+        const r = parseInt(els[i].style.left) + 130;
+        if (r > maxWidth) maxWidth = r;
+      }
+      timelineWrapper.style.minWidth = maxWidth + 'px';
+    }
+
+    function renderHands() {
+      handsContainer.innerHTML = '';
+      players.forEach((p, pi) => {
+        const div = document.createElement('div');
+        div.className = 'player-hand ' + (pi === currentPlayerIndex ? 'current' : '');
+        div.innerHTML = `<h4>${playerNames[pi]} (${p.hand.length}张)</h4>`;
+        const row = document.createElement('div');
+        row.className = 'hand-cards';
+        div.appendChild(row);
+
+        if (pi === currentPlayerIndex) {
+          p.hand.forEach((c, idx) => {
+            const cel = makeCardEl(c, 'event');
+            cel.onclick = () => selectCard(pi, idx);
+            if (c === selectedCard) cel.classList.add('selected');
+            row.appendChild(cel);
+          });
+        } else {
+          p.hand.forEach((c, idx) => {
+            const cel = makeCardEl(c, 'back');
+            row.appendChild(cel);
+          });
+        }
+        handsContainer.appendChild(div);
+      });
+    }
+
+    function renderCurrentPlayer() {
+      currentPlayerEl.innerText = `当前回合：${playerNames[currentPlayerIndex]} （牌堆剩余：${deck.length}张）`;
+    }
+
+    function getCategoryColor(cat) {
+      if (cat === 'Greco-Roman') return '#C5B358';
+      if (cat === 'Christianity') return '#002366';
+      if (cat === 'German Warriors') return '#8B0000';
+      return '#888';
+    }
+
+    function makeCardEl(card, type) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      if (type === 'back') {
+        d.classList.add('back');
+      } else {
+        if (card.category) {
+          const cat = document.createElement('div');
+          cat.className = 'category';
+          cat.innerText = card.category;
+          cat.style.color = getCategoryColor(card.category);
+          d.appendChild(cat);
+        }
+
+        const imgSrc = card.img || `./images/${card.event}.jpg`;
+        const img = document.createElement('img');
+        img.className = 'card-img';
+        img.src = imgSrc;
+        img.onerror = () => { img.onerror = null; img.src = './images/timeline.png'; };
+        d.appendChild(img);
+        const evt = document.createElement('div');
+        evt.className = 'event-text';
+        evt.innerText = card.event;
+        d.appendChild(evt);
+        if (type === 'full') {
+          const y = document.createElement('div');
+          y.className = 'year';
+          y.innerText = card.displayYear || card.year;
+          d.appendChild(y);
+        }
+      }
+      return d;
+    }
+
+    // ==============================
+    // 选牌
+    // ==============================
+    function selectCard(pIdx, cIdx) {
+      if (pIdx !== currentPlayerIndex) return;
+      selectedCard = players[pIdx].hand[cIdx];
+      const imgSrc = selectedCard.img || `./images/${selectedCard.event}.jpg`;
+      showTip(`已选择：<strong style="font-size: 24px; color: #fff;">${selectedCard.event}</strong> <img src="${imgSrc}" style="height: 120px; vertical-align: middle; border-radius: 6px; margin-left: 10px;" onerror="this.onerror=null; this.src=selectedCard.isRange?'./images/range_default.png':'./images/timeline.png';"><br><span style="font-size:14px; opacity:0.8;">(提示: 请点击${selectedCard.isRange ? '下排范围区域的虚线框' : '上排的虚线框'}放置)</span>`);
+      renderHands();
+      renderTimeline();
+    }
+
+    // ==============================
+    // 插入判定
+    // ==============================
+    function insertAt(pos, isRangeTarget) {
+      if (!selectedCard) { showTip("请先选一张手牌"); return; }
+      if (!!selectedCard.isRange !== isRangeTarget) {
+        showTip(`<span style="color:#ff3333;font-size:20px;">类型错误！请放在正确的行。</span>`);
+        return;
+      }
+
+      const p = currentPlayerIndex;
+      const hand = players[p].hand;
+      let ok = false;
+
+      if (!isRangeTarget) {
+        const left = timeline[pos - 1];
+        const right = timeline[pos];
+        if (!left && !right) ok = true;
+        else if (!left) ok = selectedCard.year < right.year;
+        else if (!right) ok = selectedCard.year > left.year;
+        else ok = selectedCard.year > left.year && selectedCard.year < right.year;
+      } else {
+        const left = timelineRange[pos - 1];
+        const right = timelineRange[pos];
+
+        const cmp = (a, b) => {
+          if (a.year !== b.year) return a.year - b.year;
+          return a.endYear - b.endYear;
+        };
+
+        if (!left && !right) ok = true;
+        else if (!left) ok = cmp(selectedCard, right) <= 0;
+        else if (!right) ok = cmp(left, selectedCard) <= 0;
+        else ok = cmp(left, selectedCard) <= 0 && cmp(selectedCard, right) <= 0;
+      }
+
+      const imgSrc = selectedCard.img || `./images/${selectedCard.event}.jpg`;
+      const imgTag = `<img src="${imgSrc}" style="height: 120px; vertical-align: middle; border-radius: 6px; margin-left: 10px;" onerror="this.onerror=null; this.src='./images/timeline.png';">`;
+
+      if (ok) {
+        if (!isRangeTarget) timeline.splice(pos, 0, selectedCard);
+        else timelineRange.splice(pos, 0, selectedCard);
+        players[p].hand = hand.filter(x => x !== selectedCard);
+        showTip(`<strong style="font-size: 24px; color: #fff;">${playerNames[p]} 正确！${selectedCard.displayYear || selectedCard.year}</strong> ${imgTag}`);
+        checkWin(p);
+      } else {
+        if (deck.length > 0) {
+          players[p].hand.push(deck.pop());
+          showTip(`<strong style="font-size: 24px; color: #fff;">${playerNames[p]} 错误！多抽1张</strong> ${imgTag}`);
+        } else {
+          showTip(`<strong style="font-size: 24px; color: #fff;">${playerNames[p]} 错误！但牌堆已空无法补牌。</strong> ${imgTag}`);
+        }
+      }
+      selectedCard = null;
+      nextPlayer();
+      renderAll();
+    }
+
+    // ==============================
+    // 回合 & 胜利
+    // ==============================
+    function nextPlayer() {
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    }
+    function checkWin(p) {
+      if (players[p].hand.length === 0) {
+        showTip(`🎉 ${playerNames[p]} 赢了！`);
+        startBtn.disabled = false;
+        document.body.classList.remove('playing');
+      }
+    }
+    function showTip(t) { tip.innerHTML = t; }
+
+    // ==============================
+    // 编辑器
+    // ==============================
+    function openEditor() {
+      editorModal.style.display = 'flex';
+      renderCardList();
+      editIsRange.checked = false; editEndYear.style.display = 'none'; editEndYear.value = '';
+      editEvent.value = ''; editYear.value = ''; editDisplayYear.value = ''; editChapter.value = 'Chapter 1'; editCategory.value = ''; editDifficulty.value = 'easy'; editImg.value = ''; editingIndex = -1;
+    }
+    function renderCardList() {
+      cardList.innerHTML = '';
+      allCards.forEach((it, i) => {
+        const d = document.createElement('div');
+        d.className = 'card-item';
+        const catColor = getCategoryColor(it.category);
+        const diff = it.difficulty || 'easy';
+        const diffLabel = diff === 'easy' ? '简' : (diff === 'normal' ? '中' : '难');
+        const chapMatch = (it.chapter || 'Chapter 1').match(/\d+/);
+        const chapLabel = chapMatch ? `C${chapMatch[0]}` : 'C1';
+        const typeLabel = it.isRange ? `<small style="color:#ff3333;font-weight:bold">[范围]</small>` : '';
+        d.innerHTML = `<div>${typeLabel} <small>[${diffLabel}]</small> <small>[${chapLabel}]</small> <small style="color:${catColor}; font-weight:bold;">[${it.category || '无'}]</small> ${it.event} (${it.displayYear || (it.isRange ? `${it.year}~${it.endYear}` : it.year)})</div><button class="del-btn" data-i="${i}">删</button>`;
+        d.onclick = e => {
+          if (e.target.tagName === 'BUTTON') return;
+          editIsRange.checked = !!it.isRange;
+          editEndYear.style.display = it.isRange ? 'inline-block' : 'none';
+          editEndYear.value = it.endYear || '';
+          editEvent.value = it.event; editYear.value = it.year; editDisplayYear.value = it.displayYear || ''; editChapter.value = it.chapter || 'Chapter 1'; editCategory.value = it.category || ''; editDifficulty.value = it.difficulty || 'easy'; editImg.value = it.img || ''; editingIndex = i;
+        };
+        cardList.appendChild(d);
+      });
+      document.querySelectorAll('.del-btn').forEach(b => {
+        b.onclick = e => {
+          const i = +e.target.dataset.i;
+          allCards.splice(i, 1); saveCards(allCards); renderCardList();
+        };
+      });
+    }
+    function saveEditCard() {
+      const isR = editIsRange.checked;
+      const e = editEvent.value.trim();
+      const y = +editYear.value.trim();
+      const ey = +editEndYear.value.trim();
+      const dy = editDisplayYear.value.trim();
+      const chap = editChapter.value;
+      const cat = editCategory.value;
+      const diff = editDifficulty.value;
+      const img = formatImgUrl(editImg.value.trim());
+      if (!e || isNaN(y) || (isR && isNaN(ey))) { alert('输入正确'); return; }
+
+      const newCard = { event: e, year: y, difficulty: diff, chapter: chap };
+      if (isR) { newCard.isRange = true; newCard.endYear = ey; }
+      if (dy) newCard.displayYear = dy;
+      if (cat) newCard.category = cat;
+      if (img) newCard.img = img;
+      if (editingIndex >= 0) allCards[editingIndex] = newCard;
+      else allCards.push(newCard);
+      saveCards(allCards); renderCardList();
+      editIsRange.checked = false; editEndYear.style.display = 'none'; editEndYear.value = '';
+      editEvent.value = ''; editYear.value = ''; editDisplayYear.value = ''; editChapter.value = 'Chapter 1'; editCategory.value = ''; editDifficulty.value = 'easy'; editImg.value = ''; editingIndex = -1;
+    }
+    function exportCards() {
+      const d = JSON.stringify(allCards, null, 2);
+      const blob = new Blob([d], { type: 'application/json' });
+      const u = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = u; a.download = '时间线卡牌.json';
+      a.click(); URL.revokeObjectURL(u);
+    }
+    function importCards(e) {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        try {
+          const d = JSON.parse(ev.target.result);
+          if (Array.isArray(d)) {
+            allCards = d.map(c => {
+              if (c.img) c.img = formatImgUrl(c.img);
+              return c;
+            });
+            saveCards(allCards); renderCardList(); alert('成功');
+          }
+        } catch { alert('失败'); }
+      };
+      r.readAsText(f);
+    }
+    function resetDefault() {
+      if (!confirm('重置？')) return;
+      allCards = [...defaultCards]; saveCards(allCards); renderCardList();
+    }
+  </script>
+</body>
+
+</html>

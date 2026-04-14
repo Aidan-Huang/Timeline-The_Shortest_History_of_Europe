@@ -1,0 +1,164 @@
+[
+  {
+    "event": "Ten Commandments",
+    "year": -1250,
+    "difficulty": "normal",
+    "displayYear": "BC1250",
+    "category": "Christianity"
+  },
+  {
+    "event": "Euclid's Elements",
+    "year": -300,
+    "difficulty": "normal",
+    "displayYear": "BC300",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Roman conquest of Greece",
+    "year": -146,
+    "difficulty": "normal",
+    "displayYear": "BC146",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Caesar's Death",
+    "year": -44,
+    "difficulty": "hard",
+    "chapter": "Chapter 1",
+    "displayYear": "BC44",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Birth of Jesus",
+    "year": 1,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "category": "Christianity"
+  },
+  {
+    "event": "Good Friday",
+    "year": 33,
+    "difficulty": "hard",
+    "category": "Christianity"
+  },
+  {
+    "event": "Conversion of Constantine",
+    "year": 313,
+    "category": "Christianity"
+  },
+  {
+    "event": "Official state religion",
+    "year": 380,
+    "difficulty": "normal",
+    "displayYear": "Fifty years later",
+    "category": "Christianity"
+  },
+  {
+    "event": "Fall of Rome",
+    "year": 476,
+    "category": "German Warriors"
+  },
+  {
+    "event": "Norman Conquest of England",
+    "year": 1066,
+    "difficulty": "hard",
+    "category": "German Warriors"
+  },
+  {
+    "event": "Renaissance",
+    "year": 1490,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C15",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Hermes by Praxiteles",
+    "year": -1000,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "BC1000Test",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Adam and Eve",
+    "year": 1000,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C15Test",
+    "category": "Christianity"
+  },
+  {
+    "event": "David by Michelangelo",
+    "year": 1590,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C15Test",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Fall of Constantinople",
+    "year": 1453,
+    "difficulty": "hard",
+    "category": "Christianity"
+  },
+  {
+    "event": "Protestant Reformation",
+    "year": 1532,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C16",
+    "category": "Christianity"
+  },
+  {
+    "event": "Sciencific Revolution",
+    "year": 1600,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C17",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Enligtenment",
+    "year": 1700,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C18",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Romanticism",
+    "year": 1800,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "displayYear": "C19",
+    "category": "German Warriors"
+  },
+  {
+    "event": "Classic",
+    "year": -2000,
+    "difficulty": "easy",
+    "chapter": "Chapter 1",
+    "isRange": true,
+    "endYear": 475,
+    "displayYear": "Classic"
+  },
+  {
+    "event": "Middel Age",
+    "year": 476,
+    "difficulty": "easy",
+    "chapter": "Chapter 1",
+    "isRange": true,
+    "endYear": 1399,
+    "displayYear": "Middel Age"
+  },
+  {
+    "event": "Morden",
+    "year": 1400,
+    "difficulty": "easy",
+    "chapter": "Chapter 1",
+    "isRange": true,
+    "endYear": 3000,
+    "displayYear": "Morden"
+  }
+]
