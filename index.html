@@ -335,6 +335,28 @@
       gap: 8px;
     }
 
+    .editor-search {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 10px 0;
+      align-items: center;
+    }
+    .editor-search input,
+    .editor-search select {
+      padding: 8px;
+      border-radius: 6px;
+      border: none;
+      background: #1f3055;
+      color: #fff;
+      min-width: 120px;
+    }
+    .editor-search .search-actions {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
     input {
       padding: 8px;
       border-radius: 6px;
@@ -479,6 +501,27 @@
         <input id="editImg" placeholder="图片URL(可选)" style="flex: 1;">
         <button class="btn" id="addCardBtn" style="margin: 0;">保存</button>
       </div>
+      <div class="editor-search">
+        <input id="searchText" placeholder="搜索事件/分类/章节" style="flex: 1; min-width: 180px;">
+        <input id="searchYearMin" placeholder="起始年份" style="width: 90px;">
+        <input id="searchYearMax" placeholder="结束年份" style="width: 90px;">
+        <select id="searchDifficulty" style="width: 120px;">
+          <option value="">全部难度</option>
+          <option value="easy">Easy</option>
+          <option value="normal">Normal</option>
+          <option value="hard">Hard</option>
+        </select>
+        <select id="searchCategory" style="width: 130px;">
+          <option value="">全部分类</option>
+          <option value="Greco-Roman">Greco-Roman</option>
+          <option value="Christianity">Christianity</option>
+          <option value="German Warriors">German Warriors</option>
+        </select>
+        <div class="search-actions">
+          <button class="btn2" id="applySearchBtn">🔍 搜索</button>
+          <button class="btn2" id="clearSearchBtn">↺ 重置</button>
+        </div>
+      </div>
       <div class="import-export">
         <button class="btn2" id="exportBtn">💾 导出卡牌</button>
         <label class="btn2" for="importFile">📂 导入卡牌</label>
@@ -548,7 +591,13 @@
 
     function loadCards() {
       const s = localStorage.getItem('timeline_cards');
-      const cards = s ? JSON.parse(s) : [...defaultCards];
+      let cards;
+      try {
+        cards = s ? JSON.parse(s) : [...defaultCards];
+      } catch (e) {
+        console.error('timeline_cards parse failed, using default cards:', e);
+        cards = [...defaultCards];
+      }
       return cards.map(c => {
         if (c.img) c.img = formatImgUrl(c.img);
         return c;
@@ -610,6 +659,13 @@
     const exportBtn = document.getElementById('exportBtn');
     const importFile = document.getElementById('importFile');
     const resetBtn = document.getElementById('resetBtn');
+    const searchText = document.getElementById('searchText');
+    const searchYearMin = document.getElementById('searchYearMin');
+    const searchYearMax = document.getElementById('searchYearMax');
+    const searchDifficulty = document.getElementById('searchDifficulty');
+    const searchCategory = document.getElementById('searchCategory');
+    const applySearchBtn = document.getElementById('applySearchBtn');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
 
     // 玩家编辑器 DOM
     const playerEditorModal = document.getElementById('playerEditorModal');
@@ -673,6 +729,8 @@
     exportBtn.onclick = exportCards;
     importFile.onchange = importCards;
     resetBtn.onclick = resetDefault;
+    applySearchBtn.onclick = renderCardList;
+    clearSearchBtn.onclick = resetSearchFilters;
 
     openPlayerEditorBtn.onclick = () => {
       playerEditorModal.style.display = 'flex';
@@ -1053,13 +1111,38 @@
     // ==============================
     function openEditor() {
       editorModal.style.display = 'flex';
-      renderCardList();
+      resetSearchFilters();
       editIsRange.checked = false; editEndYear.style.display = 'none'; editEndYear.value = '';
       editEvent.value = ''; editYear.value = ''; editDisplayYear.value = ''; editChapter.value = 'Chapter 1'; editCategory.value = ''; editDifficulty.value = 'easy'; editImg.value = ''; editingIndex = -1;
     }
+    function resetSearchFilters() {
+      searchText.value = '';
+      searchYearMin.value = '';
+      searchYearMax.value = '';
+      searchDifficulty.value = '';
+      searchCategory.value = '';
+      renderCardList();
+    }
     function renderCardList() {
       cardList.innerHTML = '';
+      const text = searchText.value.trim().toLowerCase();
+      const minYear = parseInt(searchYearMin.value);
+      const maxYear = parseInt(searchYearMax.value);
+      const diff = searchDifficulty.value;
+      const cat = searchCategory.value;
+      let visibleCount = 0;
       allCards.forEach((it, i) => {
+        const yearStart = it.year;
+        const yearEnd = it.isRange ? it.endYear : it.year;
+        if (text) {
+          const hay = [it.event, it.category || '', it.chapter || '', it.displayYear || '', String(it.year), String(it.endYear || '')].join(' ').toLowerCase();
+          if (!hay.includes(text)) return;
+        }
+        if (diff && (it.difficulty || 'easy') !== diff) return;
+        if (cat && (it.category || '') !== cat) return;
+        if (!isNaN(minYear) && yearEnd < minYear) return;
+        if (!isNaN(maxYear) && yearStart > maxYear) return;
+        visibleCount++;
         const d = document.createElement('div');
         d.className = 'card-item' + (editingIndex === i ? ' editing' : '');
 
@@ -1071,8 +1154,8 @@
 
         // --- Metadata text ---
         const catColor = getCategoryColor(it.category);
-        const diff = it.difficulty || 'easy';
-        const diffLabel = diff === 'easy' ? '简单' : (diff === 'normal' ? '普通' : '困难');
+        const itemDiff = it.difficulty || 'easy';
+        const diffLabel = itemDiff === 'easy' ? '简单' : (itemDiff === 'normal' ? '普通' : '困难');
         const chapMatch = (it.chapter || 'Chapter 1').match(/\d+/);
         const chapLabel = chapMatch ? `Ch ${chapMatch[0]}` : 'Ch 1';
         const yearStr = it.displayYear || (it.isRange ? `${it.year} ~ ${it.endYear}` : it.year);
@@ -1119,6 +1202,10 @@
         cardList.appendChild(d);
       });
 
+      if (visibleCount === 0) {
+        cardList.innerHTML = '<div style="color:#ccc;padding:10px;">无搜索结果</div>';
+        return;
+      }
       document.querySelectorAll('.del-btn').forEach(b => {
         b.onclick = e => {
           const i = +e.target.dataset.i;
@@ -1171,9 +1258,14 @@
               if (c.img) c.img = formatImgUrl(c.img);
               return c;
             });
-            saveCards(allCards); renderCardList(); alert('成功');
+            saveCards(allCards); renderCardList(); alert('导入成功');
+          } else {
+            alert('导入失败：JSON 文件必须是卡牌数组');
           }
-        } catch { alert('失败'); }
+        } catch (err) {
+          console.error('importCards failed:', err);
+          alert('导入失败：无效 JSON 格式');
+        }
       };
       r.readAsText(f);
     }
