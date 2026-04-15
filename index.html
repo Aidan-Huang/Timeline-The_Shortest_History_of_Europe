@@ -257,20 +257,76 @@
     }
 
     .card-list {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       margin: 10px 0;
     }
 
     .card-item {
-      background: #fff;
-      color: #222;
-      padding: 10px;
-      border-radius: 6px;
+      background: #1e2d50;
+      color: #eee;
+      padding: 10px 14px;
+      border-radius: 8px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .card-item:hover {
+      border-color: #3355ff;
+    }
+
+    .card-item.editing {
+      border-color: #ffcc00;
+    }
+
+    .card-item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .card-item-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .card-item-meta {
+      font-size: 12px;
+      color: #aaa;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* Mini card preview wrapper — clips & scales the real .card */
+    .card-preview-wrap {
+      width: 70px;
+      height: 105px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border-radius: 5px;
+      position: relative;
+    }
+
+    .card-preview-wrap .card {
+      width: 120px;
+      height: 180px;
+      transform: scale(0.583);
+      transform-origin: top left;
+      pointer-events: none;
+      font-size: 12px;
+      cursor: default;
+    }
+
+    .card-preview-wrap .card:hover {
+      transform: scale(0.583);
     }
 
     .form-line {
@@ -1005,27 +1061,71 @@
       cardList.innerHTML = '';
       allCards.forEach((it, i) => {
         const d = document.createElement('div');
-        d.className = 'card-item';
+        d.className = 'card-item' + (editingIndex === i ? ' editing' : '');
+
+        // --- Mini card preview ---
+        const preview = document.createElement('div');
+        preview.className = 'card-preview-wrap';
+        preview.appendChild(makeCardEl(it, 'full'));
+        d.appendChild(preview);
+
+        // --- Metadata text ---
         const catColor = getCategoryColor(it.category);
         const diff = it.difficulty || 'easy';
-        const diffLabel = diff === 'easy' ? '简' : (diff === 'normal' ? '中' : '难');
+        const diffLabel = diff === 'easy' ? '简单' : (diff === 'normal' ? '普通' : '困难');
         const chapMatch = (it.chapter || 'Chapter 1').match(/\d+/);
-        const chapLabel = chapMatch ? `C${chapMatch[0]}` : 'C1';
-        const typeLabel = it.isRange ? `<small style="color:#ff3333;font-weight:bold">[范围]</small>` : '';
-        d.innerHTML = `<div>${typeLabel} <small>[${diffLabel}]</small> <small>[${chapLabel}]</small> <small style="color:${catColor}; font-weight:bold;">[${it.category || '无'}]</small> ${it.event} (${it.displayYear || (it.isRange ? `${it.year}~${it.endYear}` : it.year)})</div><button class="del-btn" data-i="${i}">删</button>`;
+        const chapLabel = chapMatch ? `Ch ${chapMatch[0]}` : 'Ch 1';
+        const yearStr = it.displayYear || (it.isRange ? `${it.year} ~ ${it.endYear}` : it.year);
+
+        const info = document.createElement('div');
+        info.className = 'card-item-info';
+        info.innerHTML = `
+          <div class="card-item-title">${it.event}</div>
+          <div class="card-item-meta">
+            <span style="color:#ffcc00;">📅 ${yearStr}</span>
+            ${it.isRange ? '<span style="color:#ff6b6b;">范围卡</span>' : ''}
+            ${it.category ? `<span style="color:${catColor};">${it.category}</span>` : ''}
+            <span>${chapLabel}</span>
+            <span>${diffLabel}</span>
+          </div>
+        `;
+        d.appendChild(info);
+
+        // --- Delete button ---
+        const delBtn = document.createElement('button');
+        delBtn.className = 'del-btn';
+        delBtn.dataset.i = i;
+        delBtn.innerText = '删除';
+        d.appendChild(delBtn);
+
         d.onclick = e => {
-          if (e.target.tagName === 'BUTTON') return;
+          if (e.target.classList.contains('del-btn')) return;
+          // Un-highlight old, highlight new
+          document.querySelectorAll('.card-item').forEach(el => el.classList.remove('editing'));
+          d.classList.add('editing');
+
           editIsRange.checked = !!it.isRange;
           editEndYear.style.display = it.isRange ? 'inline-block' : 'none';
           editEndYear.value = it.endYear || '';
-          editEvent.value = it.event; editYear.value = it.year; editDisplayYear.value = it.displayYear || ''; editChapter.value = it.chapter || 'Chapter 1'; editCategory.value = it.category || ''; editDifficulty.value = it.difficulty || 'easy'; editImg.value = it.img || ''; editingIndex = i;
+          editEvent.value = it.event;
+          editYear.value = it.year;
+          editDisplayYear.value = it.displayYear || '';
+          editChapter.value = it.chapter || 'Chapter 1';
+          editCategory.value = it.category || '';
+          editDifficulty.value = it.difficulty || 'easy';
+          editImg.value = it.img || '';
+          editingIndex = i;
         };
         cardList.appendChild(d);
       });
+
       document.querySelectorAll('.del-btn').forEach(b => {
         b.onclick = e => {
           const i = +e.target.dataset.i;
-          allCards.splice(i, 1); saveCards(allCards); renderCardList();
+          allCards.splice(i, 1);
+          if (editingIndex === i) editingIndex = -1;
+          saveCards(allCards);
+          renderCardList();
         };
       });
     }
