@@ -2,7 +2,8 @@
   {
     "event": "Ten Commandments",
     "year": -1250,
-    "difficulty": "normal",
+    "difficulty": "easy",
+    "chapter": "Chapter 1",
     "displayYear": "BC1250",
     "category": "Christianity"
   },
@@ -38,7 +39,8 @@
   {
     "event": "Good Friday",
     "year": 33,
-    "difficulty": "hard",
+    "difficulty": "normal",
+    "chapter": "Chapter 1",
     "category": "Christianity"
   },
   {
@@ -74,26 +76,24 @@
   },
   {
     "event": "Hermes by Praxiteles",
-    "year": -1000,
-    "difficulty": "easy",
+    "year": -330,
+    "difficulty": "normal",
     "chapter": "Chapter 2",
-    "displayYear": "BC1000Test",
+    "displayYear": "BC330",
     "category": "Greco-Roman"
   },
   {
     "event": "Adam and Eve",
-    "year": 1000,
-    "difficulty": "easy",
+    "year": 1015,
+    "difficulty": "normal",
     "chapter": "Chapter 2",
-    "displayYear": "C15Test",
     "category": "Christianity"
   },
   {
     "event": "David by Michelangelo",
-    "year": 1590,
-    "difficulty": "easy",
+    "year": 1504,
+    "difficulty": "normal",
     "chapter": "Chapter 2",
-    "displayYear": "C15Test",
     "category": "Greco-Roman"
   },
   {
@@ -160,5 +160,52 @@
     "isRange": true,
     "endYear": 3000,
     "displayYear": "Morden"
+  },
+  {
+    "event": "Paul's Missionary",
+    "year": 35,
+    "difficulty": "easy",
+    "chapter": "Chapter 1",
+    "category": "Christianity"
+  },
+  {
+    "event": "Gutenberg Revolution",
+    "year": 1440,
+    "difficulty": "normal",
+    "chapter": "Chapter 2",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Encyclopédie",
+    "year": 1772,
+    "difficulty": "normal",
+    "chapter": "Chapter 2"
+  },
+  {
+    "event": "Heliocentrism",
+    "year": 1543,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "law of universal gravitation",
+    "year": 1687,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "category": "Greco-Roman"
+  },
+  {
+    "event": "Prise de la Bastille",
+    "year": 1789,
+    "difficulty": "easy",
+    "chapter": "Chapter 2"
+  },
+  {
+    "event": "Origin of Species",
+    "year": 1859,
+    "difficulty": "easy",
+    "chapter": "Chapter 2",
+    "category": "Greco-Roman"
   }
 ]
