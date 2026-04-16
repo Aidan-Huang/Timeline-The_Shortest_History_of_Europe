@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>时间线 Timeline（1~8人）</title>
+  <title>Timeline-The Shortest History of Europe</title>
   <style>
     * {
       box-sizing: border-box;
@@ -525,7 +525,7 @@
       <div class="import-export">
         <button class="btn2" id="exportBtn">💾 导出卡牌</button>
         <label class="btn2" for="importFile">📂 导入卡牌</label>
-        <input type="file" id="importFile" accept=".json">
+        <input type="file" id="importFile" accept=".json" style="display:none;">
         <button class="btn2" id="resetBtn">🔄 重置默认卡牌</button>
       </div>
       <small>点击卡牌修改，点删除移除</small>
@@ -731,6 +731,8 @@
     resetBtn.onclick = resetDefault;
     applySearchBtn.onclick = renderCardList;
     clearSearchBtn.onclick = resetSearchFilters;
+
+    importStaticCards(false);
 
     openPlayerEditorBtn.onclick = () => {
       playerEditorModal.style.display = 'flex';
@@ -1248,30 +1250,55 @@
       a.click(); URL.revokeObjectURL(u);
     }
     function importCards(e) {
-      const f = e.target.files[0]; if (!f) return;
-      const r = new FileReader();
-      r.onload = ev => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
         try {
           const d = JSON.parse(ev.target.result);
-          if (Array.isArray(d)) {
-            allCards = d.map(c => {
-              if (c.img) c.img = formatImgUrl(c.img);
-              return c;
-            });
-            saveCards(allCards); renderCardList(); alert('导入成功');
-          } else {
-            alert('导入失败：JSON 文件必须是卡牌数组');
+          if (!Array.isArray(d)) {
+            alert('导入失败：文件必须是卡牌数组');
+            importFile.value = '';
+            return;
           }
+          allCards = d.map(c => {
+            if (c.img) c.img = formatImgUrl(c.img);
+            return c;
+          });
+          saveCards(allCards);
+          renderCardList();
+          alert('导入成功');
         } catch (err) {
           console.error('importCards failed:', err);
           alert('导入失败：无效 JSON 格式');
         }
+        importFile.value = '';
       };
-      r.readAsText(f);
+      reader.readAsText(f);
+    }
+    function importStaticCards(showAlert = true) {
+      fetch('./cards.json')
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then(d => {
+          if (!Array.isArray(d)) throw new Error('cards.json must contain an array');
+          allCards = d.map(c => {
+            if (c.img) c.img = formatImgUrl(c.img);
+            return c;
+          });
+          saveCards(allCards);
+          renderCardList();
+          if (showAlert) alert('已从 cards.json 导入卡牌');
+        })
+        .catch(err => {
+          console.error('importStaticCards failed:', err);
+          if (showAlert) alert('导入失败：无法加载 cards.json');
+        });
     }
     function resetDefault() {
-      if (!confirm('重置？')) return;
-      allCards = [...defaultCards]; saveCards(allCards); renderCardList();
+      importStaticCards(true);
     }
   </script>
 </body>
